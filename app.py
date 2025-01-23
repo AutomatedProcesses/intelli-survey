@@ -1,11 +1,17 @@
-from re import DEBUG
 from flask import Flask
+from flask_restx import Api, Resource
+from config import DevConfig
+from dotenv import find_dotenv, load_dotenv
 
 app = Flask(__name__)
+app.config.from_object(DevConfig)
+api = Api(app, doc='/docs')
 
-@app.route("/")
-def hello_world():
-  return 'hello world'
+@api.route('/hello')
+class HelloWorld(Resource):
+  def get(self):
+    return {'message':'Hello World!'}
+
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', debug=True)
+  app.run()
