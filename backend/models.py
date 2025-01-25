@@ -7,11 +7,25 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import uuid
 from datetime import datetime, timezone
+from config import DevConfig, ProdConfig, TestConfig
 
 app = Flask(__name__)
 
+CORS(app)
+
+config_name = os.getenv('FLASK_ENV', 'development')
+
+if config_name == 'production':
+  app.config.from_object(ProdConfig)
+elif config_name == 'testing':
+  app.config.from_object(TestConfig)
+else:
+  app.config.from_object(DevConfig)
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 db = SQLAlchemy(app)
-ma = Marshmellow(app)
+ma = Marshmallow(app)
 
 
 class User(db.Model):
@@ -55,4 +69,20 @@ class Question(db.Model):
   __tablename__ = 'question'
   obj_id = db.Column(db.Integer, primary_key=True)
   survey_id = db.Column(db.Integer, db.ForeignKey(Survey.obj_id))
+  text = db.Column(db.Text, nullable=False)
   
+  survey = db.relationship('Survey', back_polulates='questions')
+  responder_answers = db.relationship('ResponderAnswer', cascade='all,delete', back_polulates='question')
+
+
+class ResponderAnswer(db.Model):
+  '''
+  Model of answers of each question of given suervey
+  Each answer has relationship with question and questin has relationship with survey
+  '''
+  __tablename__ = 'responder_answer'
+  response_id = db.Column(db.Integer, db.ForeignKey(Response.obj_id), primary_key=True, autoincrement=False)
+  question_id = db.Column(db.Integer, db.ForeignKey(Question.obj_id), primary_key=True, autoincrement=False)
+  
+  response = db.relationship('Response', back_polulates='responder_answers')
+  question = db.relationship('Question', back_polulates='responder_answers')
