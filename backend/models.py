@@ -2,30 +2,11 @@ import os
 from re import S
 from flask import Flask, request, jsonify, make_response
 from sqlalchemy.orm import CascadeOptions
-from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import uuid
 from datetime import datetime, timezone
-from config import DevConfig, ProdConfig, TestConfig
-
-app = Flask(__name__)
-
-CORS(app)
-
-config_name = os.getenv('FLASK_ENV', 'development')
-
-if config_name == 'production':
-  app.config.from_object(ProdConfig)
-elif config_name == 'testing':
-  app.config.from_object(TestConfig)
-else:
-  app.config.from_object(DevConfig)
-
-basedir = os.path.abspath(os.path.dirname(__file__))
-
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
+from extensions import db, ma
 
 
 class User(db.Model):
@@ -72,7 +53,7 @@ class Question(db.Model):
   survey_id = db.Column(db.Integer, db.ForeignKey(Survey.obj_id))
   text = db.Column(db.Text, nullable=False)
   
-  survey = db.relationship('Survey', back_polulates='questions')
+  survey = db.relationship('Survey', back_populates='questions')
   responder_answers = db.relationship('ResponderAnswer', cascade='all,delete', back_populates='question')
 
 
