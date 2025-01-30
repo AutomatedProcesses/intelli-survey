@@ -7,9 +7,10 @@ from flask_cors import CORS
 import uuid
 from datetime import datetime, timezone
 from extensions import db, ma
+from flask_login import UserMixin
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
   '''
   Model for admin user
   '''
@@ -19,7 +20,14 @@ class User(db.Model):
   password = db.Column(db.String(50), nullable=False)        # consider bcrypt for encryption
   email = db.Column(db.String(50), unique=True, nullable=False)
   date_created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-  #is_admin = db.Column(db.Boolean, default=False)
+  role = db.Column(db.String(50), nullable=False)
+
+  def __repr__(self):
+    return f'<User {self.username}, Role: {self.role}>'
+
+  def get_id(self):
+    return self.obj_id
+    
 
 
 class Response(db.Model):
@@ -73,7 +81,7 @@ class ResponderAnswer(db.Model):
 
 class UserSchema(ma.Schema):
   class Meta:
-    fields = ('obj_id', 'username', 'email', 'is_admin', 'date_created')
+    fields = ('obj_id', 'username', 'email', 'role', 'date_created')
 
 
 class QuestionSchema(ma.Schema):
